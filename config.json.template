@@ -1,0 +1,15 @@
+{
+  "redmine" : {
+   "url" : "https://redmine.c4c.sprint.pl",
+    "credentials" : {
+      "username" : "bnicka",
+      "password" : "XXXXXXXX"
+    }
+  },
+  "gitlab" : {
+    "url" : "http://gitlab.c4c.sprint.pl/",
+    "token" : "XXXXXXXXXXXXXXXXXXXX"
+  }
+}
+
+
