@@ -1,6 +1,5 @@
 var _ = require('underscore')
 var BPromise = require('bluebird')
-var log4js = require('log4js');
 
 var config = require('./config.json')
 
