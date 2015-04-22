@@ -1,7 +1,6 @@
 var _ = require('underscore')
 var BPromise = require('bluebird')
 var log4js = require('log4js');
-var logger = log4js.getLogger();
 
 var config = require('./config.json')
 
@@ -29,7 +28,6 @@ var getFullLog = function() {
 }
 
 var splitIntoFields = function(line) {
-  //logger.debug("splitting line: " + line);
   var arr = line.split(separator);
   var descrWithIdRef = arr[1];
   var idRef = idRefPattern.exec(descrWithIdRef);
@@ -41,20 +39,14 @@ var splitIntoFields = function(line) {
     redmineIdRef : idRef[0].trim(),
     description: descrWithIdRef.trim()
   }
-  //logger.error(result);
   return result;
 
 }
 
 var processLogLines = function(lines) {
-  //logger.debug("pattern: " + idRefPattern);
-  //logger.debug("separator: " + separator);
-  //logger.debug("LINES: ", lines);
   var regExp = new RegExp("^.* \\"+separator+" "+idRefPatternStr+":?\\s+");
-  //logger.debug("regexp: " + regExp);
   var entries = _.filter(lines, function(line) {
     var testResult = regExp.test(line);
-    //logger.debug("TEST: " + testResult +"   | line: " + line);
     return testResult;
   }).map(function(line) {
     return splitIntoFields(line)
@@ -62,7 +54,6 @@ var processLogLines = function(lines) {
 
   return entries;
 }
-
 
 
 

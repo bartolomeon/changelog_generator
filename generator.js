@@ -7,8 +7,8 @@ var config = require('./config.json')
 
 var gitlabTool = require('./gitlabTool.js')
 
-var log4js = require('log4js');
-var logger = log4js.getLogger();
+//var log4js = require('log4js');
+//var logger = log4js.getLogger();
 
 
 var redmineTools = {
@@ -26,7 +26,6 @@ var redmineTools = {
 
   findDescriptionForTicket : function(ticketId) {
 
-    //logger.debug("querrying for ticket: "+ticketId);
     return this.queryForTicketInfo(ticketId)
     .then(function(rmDescr) {
       var entity = JSON.parse(rmDescr.entity);
@@ -43,7 +42,6 @@ var redmineTools = {
         project : project,
         category: category 
       };
-      //logger.debug('REDMINE SAYS: ' + JSON.stringify(descr));
       return descr;
     });
 
