@@ -60,7 +60,7 @@ gitlabTool.getFullLog()
 
   return _.map(id2gitMap, function(gitEntries, ticketId){
     return redmineTools.findDescriptionForTicket(ticketId)
-      .then(function(ticket) {
+    .then(function(ticket) {
       var resultEntry = {};
       resultEntry[ticketId] = {
         redmine: ticket,
