@@ -28,7 +28,19 @@ let redmineTools = {
   findDescriptionForTicket : function(ticketId) {
     return this.queryForTicketInfo(ticketId)
     .then(function(rmDescr) {
-      let entity = JSON.parse(rmDescr.entity);
+
+      let entity;
+      if (!rmDescr.entity.trim()) {
+        entity = { issue : {
+          priority : {name: '???'},
+          status : { name : '???'},
+          project : { name : '???'},
+          tracker : { name : '???' },
+          subject : '<Missing entry in Redmine>'}
+        };
+      } else {
+        entity = JSON.parse(rmDescr.entity);
+      }
 
       let issue = entity.issue;
       let prio   = issue.priority.name;
@@ -42,7 +54,6 @@ let redmineTools = {
       .first()
       .value();
 
-      //console.log(JSON.stringify(issue));
 
       if (!category) {
         category = 'Niezdefiowana';
@@ -79,7 +90,7 @@ let combineLogs = function(logLines) {
   })
 }
 
-let formatToHtml = function(changelog) {
+let formatToHtml = function(changelog, fromTag, tillTag) {
 
   var gitEntryTemplate =
     _.template("<li><a href=<%- commitId %><%- commitId %></a><%- description %></li>");
@@ -97,21 +108,21 @@ let formatToHtml = function(changelog) {
   let rmEntries = _.template(
     "<!DOCTYPE html> <html lang=\"pl\"> <head> <meta charset=\"utf-8\" /> <title>Changelog</title>"
     +"<link href=\"https://redmine.c4c.sprint.pl/themes/alternate/stylesheets/application.css?1413918791\" media=\"all\" rel=\"stylesheet\" type=\"text/css\" />" 
+    +" <div id=\"header\">"
+    +"<h1>Changelog dla zakresu od <%- fromTag %> do <%- tillTag %></h1> "
+    +"</div>"
     +"<ul><% _.each(log, rmEntry => { %>"
-    +"<h2><img src=\"https://redmine.c4c.sprint.pl/images/<% print(rmEntry.status === 'Wykonane' ? 'toggle_check.png' : 'exclamation.png') %>\" title=\"<%- rmEntry.status %>\"></img> <a href=\"https://redmine.c4c.sprint.pl/issues/<%- rmEntry.id.replace('#','') %>\">#<%- rmEntry.id %> [<%- rmEntry.project %> / <%- rmEntry.category %> / <%- rmEntry.type %>] - <%- rmEntry.subject %></a></h2>"
-    +"<ul>"
-    +" <% _.each(rmEntry.git, gitEntry => {  %> "
-    +"<li><a href=\"https://gitlab.c4c.sprint.pl/c4c_dev/c4c_soft/commit/<%- gitEntry.commitId %>\"> <%- gitEntry.commitId %></a><%- gitEntry.description.replace(/^#?[0-9]+/,'') %></li>"
-    +"<% }) %>"
-    +"</ul>"
-    +"<% }) %>"
+    +"  <h2><img src=\"https://redmine.c4c.sprint.pl/images/<% print(rmEntry.status === 'Wykonane' ? 'toggle_check.png' : 'exclamation.png') %>\" title=\"<%- rmEntry.status %>\"></img> <a href=\"https://redmine.c4c.sprint.pl/issues/<%- rmEntry.id.replace('#','') %>\">#<%- rmEntry.id %> [<%- rmEntry.project %> / <%- rmEntry.category %> / <%- rmEntry.type %>] - <%- rmEntry.subject %></a></h2>"
+    +"  <ul><% _.each(rmEntry.git, gitEntry => {  %> "
+    +"      <li><a href=\"https://gitlab.c4c.sprint.pl/c4c_dev/c4c_soft/commit/<%- gitEntry.commitId %>\"> <%- gitEntry.commitId %></a><%- gitEntry.description.replace(/^#?[0-9]+/,'') %></li>"
+    +"    <% }) %>"
+    +"  </ul> <% }) %>"
     +"</ul>");
 
     //return _.map(changelog, entry => redmineEntry(entry) );
 
-    return rmEntries({ log : changelog });
+    return rmEntries({ log : changelog, fromTag : fromTag, tillTag : tillTag });
 
-    //console.log( redmineEntry(changelog) );
 }
 
 let fromTag = program.range[0];
@@ -123,12 +134,12 @@ gitlabTool.getFullLog(fromTag, tillTag)
 .all(entry => entry)
 .then(function(changelog) {
   if (program.format === 'html') {
-    console.log( formatToHtml( changelog ));
+    console.log( formatToHtml( changelog, fromTag, tillTag ));
   } else {
     console.log(JSON.stringify(changelog)); 
   }
 }).catch(error => {
-  console.error( error );
+  console.error( "ERROR: "+error );
   process.exit(1)
 });
 

@@ -18,9 +18,9 @@ let getFullLog = function(fromTag, tillTag) {
 
   return new BPromise(function(resolve, reject) {
     sh.cd('/home/bartek/work/C4C/c4c_soft');
-    let result = sh.exec('git log --pretty="%h '+separator+' %s" '+fromTag+'..'+tillTag+' | head -n 100', function(status, output) {
+    let result = sh.exec('git log --pretty="%h '+separator+' %s" '+fromTag+'..'+tillTag+' ', function(status, output) {
       if (result.status) { //0 != failure
-        reject(new Error(output));
+        reject(new Error(status, output));
       } else {
         let lines = output.split('\n');
         resolve(lines)
