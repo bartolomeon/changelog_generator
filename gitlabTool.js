@@ -1,39 +1,42 @@
-var _ = require('underscore')
-var BPromise = require('bluebird')
+let _ = require('underscore')
+let BPromise = require('bluebird')
 
-var config = require('./config.json')
+let config = require('./config.json')
 
-var sh = require('shelljs')
+let sh = require('shelljs')
 sh.config.silent = true
 
 
-var separator = '|';
-var idRefPatternStr = '#[0-9]+';
-var idRefPattern = new RegExp(idRefPatternStr);
+let separator = '|';
+let idRefPatternStr = '#[0-9]+';
+let idRefPattern = new RegExp(idRefPatternStr);
 
 
-var getFullLog = function() {
+let getFullLog = function(fromTag, tillTag) {
+  fromTag = fromTag || '';
+  tillTag = tillTag || 'HEAD'
+
   return new BPromise(function(resolve, reject) {
     sh.cd('/home/bartek/work/C4C/c4c_soft');
-    var result = sh.exec('git log --pretty="%h '+separator+' %s" | head -n 100', function(status, output) {
+    let result = sh.exec('git log --pretty="%h '+separator+' %s" '+fromTag+'..'+tillTag+' | head -n 100', function(status, output) {
       if (result.status) { //0 != failure
         reject(new Error(output));
       } else {
-        var lines = output.split('\n');
+        let lines = output.split('\n');
         resolve(lines)
       }
     });
   });
 }
 
-var splitIntoFields = function(line) {
-  var arr = line.split(separator);
-  var descrWithIdRef = arr[1];
-  var idRef = idRefPattern.exec(descrWithIdRef);
+let splitIntoFields = function(line) {
+  let arr = line.split(separator);
+  let descrWithIdRef = arr[1];
+  let idRef = idRefPattern.exec(descrWithIdRef);
 
   //descrWithIdRef.replace(idRef, ''); //FIXME (or not) remove the id from description
 
-  var result = {
+  let result = {
     commitId : arr[0].trim(),
     redmineIdRef : idRef[0].trim(),
     description: descrWithIdRef.trim()
@@ -42,14 +45,12 @@ var splitIntoFields = function(line) {
 
 }
 
-var processLogLines = function(lines) {
-  var regExp = new RegExp("^.* \\"+separator+" "+idRefPatternStr+":?\\s+");
-  var entries = _.filter(lines, function(line) {
-    var testResult = regExp.test(line);
+let processLogLines = function(lines) {
+  let regExp = new RegExp("^.* \\"+separator+" "+idRefPatternStr+":?\\s+");
+  let entries = _.filter(lines, line => {
+    let testResult = regExp.test(line);
     return testResult;
-  }).map(function(line) {
-    return splitIntoFields(line)
-  });
+  }).map(line => splitIntoFields(line));
 
   return entries;
 }
