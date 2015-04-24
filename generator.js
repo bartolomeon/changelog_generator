@@ -3,6 +3,8 @@ let rest = require('rest')
 let restBasicAuth = require('rest/interceptor/basicAuth')
 let _ = require('underscore')
 let BPromise = require('bluebird')
+let moment = require('moment-timezone');
+
 let config = require('./config.json')
 let gitlabTool = require('./gitlabTool.js')
 
@@ -36,6 +38,7 @@ let redmineTools = {
           status : { name : '???'},
           project : { name : '???'},
           tracker : { name : '???' },
+          closed_on : '',
           subject : '<Missing entry in Redmine>'}
         };
       } else {
@@ -48,6 +51,7 @@ let redmineTools = {
       let project = issue.project.name;
       let subject = issue.subject;
       let type = issue.tracker.name;
+      let closedOn = issue.closed_on;
 
       let category = _.chain(issue.custom_fields)
       .filter(field => field.name === 'Kategoria')
@@ -56,7 +60,7 @@ let redmineTools = {
 
 
       if (!category) {
-        category = 'Niezdefiowana';
+        category = '---';
       } else {
         category = category.value
       }
@@ -68,7 +72,8 @@ let redmineTools = {
         status : status,
         project : project,
         category: category,
-        type : type
+        type : type,
+        closed_on : moment(closedOn)
       };
       return descr;
     });
@@ -132,6 +137,7 @@ gitlabTool.getFullLog(fromTag, tillTag)
 .then(gitlabTool.processLogLines)
 .then(combineLogs)
 .all(entry => entry)
+.then(logs => _.sortBy(logs, 'closed_on'))
 .then(function(changelog) {
   if (program.format === 'html') {
     console.log( formatToHtml( changelog, fromTag, tillTag ));
