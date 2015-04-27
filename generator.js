@@ -136,7 +136,7 @@ let tillTag = program.range[1];
 gitlabTool.getFullLog(fromTag, tillTag)
 .then(gitlabTool.processLogLines)
 .then(combineLogs)
-.all(entry => entry)
+.all()
 .then(logs => _.sortBy(logs, 'closed_on'))
 .then(function(changelog) {
   if (program.format === 'html') {
